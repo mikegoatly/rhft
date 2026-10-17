@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RHFT Map Editor</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400&display=swap">
+<style>
+/* Layout: three columns on wide screens (pack list, map canvas, tools), stacking to one column on phones. Same cabinet palette as the game page. */
+:root {
+  --bg: #15181c; --panel: #1f242a; --line: #333a42; --fg: #e6e2d8; --muted: #9aa3ad; --accent: #e8893a; --accent2: #6f8cf0; --ok: #5ec27a; --warn: #e0b341;
+  --display: "Chakra Petch", "Trebuchet MS", sans-serif; --body: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.45 var(--body); padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px)); padding-block: 14px 30px; }
+h1 { font: 700 22px var(--display); margin: 0; } h1 span { color: var(--accent); }
+h2 { font: 600 12px var(--display); letter-spacing: .08em; text-transform: uppercase; color: var(--accent2); margin: 0 0 8px; }
+header { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+header nav { display: flex; flex-wrap: wrap; gap: 8px; }
+a { color: var(--accent2); }
+button, select, input { font: inherit; color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; }
+button { cursor: pointer; } button:hover { border-color: var(--accent); } button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent2); outline-offset: 1px; }
+button.primary { background: var(--accent); color: #1a1208; border-color: var(--accent); font-weight: 600; }
+button.on { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+input[type=number] { width: 5.5em; } input[type=text] { width: 100%; }
+.cols { display: grid; grid-template-columns: 230px minmax(0, 1fr) 330px; gap: 14px; align-items: start; }
+.cols > * { min-width: 0; }
+@media (max-width: 980px) { .cols { grid-template-columns: 1fr; } }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 10px; }
+.maplist { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.maplist li { display: flex; align-items: center; gap: 4px; }
+.maplist li .nm { flex: 1; min-width: 0; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 6px 8px; font-family: var(--mono); font-size: 13px; }
+.maplist li.sel .nm { border-color: var(--accent); background: #2a2622; }
+.maplist li .pw { color: var(--muted); font-size: 11px; }
+.mini { padding: 4px 7px; font-size: 12px; }
+.canvaswrap { background: #000; border-radius: 6px; padding: 6px; display: grid; justify-items: center; }
+canvas#map { width: 100%; max-width: 480px; aspect-ratio: 15 / 18; image-rendering: pixelated; cursor: crosshair; touch-action: none; display: block; }
+.status { font: 13px var(--mono); color: var(--muted); min-height: 1.4em; }
+.pal { display: grid; grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); gap: 4px; }
+.pal button { padding: 3px 2px; display: grid; justify-items: center; gap: 2px; font-size: 10px; color: var(--muted); line-height: 1.1; min-width: 0; overflow: hidden; }
+.sprite { width: 32px; height: 32px; background-image: url("data:image/png;base64,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"); background-size: calc(32px * 32) calc(32px * 3); image-rendering: pixelated; display: inline-block; }
+.tools { display: flex; flex-wrap: wrap; gap: 6px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.row label { color: var(--muted); font-size: 13px; }
+.props { display: grid; gap: 8px; }
+.props .st { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.props select { width: 100%; }
+kbd { font: 12px var(--mono); background: #0f1215; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; }
+.help { color: var(--muted); font-size: 13px; }
+.help p { margin: 0 0 6px; }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--accent); color: #1a1208; padding: 8px 14px; border-radius: 8px; font-weight: 500; opacity: 0; transition: opacity .2s; pointer-events: none; }
+.toast.show { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+</style>
+</head>
+<body>
+<header>
+  <div><h1>RHFT <span>Map Editor</span></h1><div class="help">Levels for Rock Hard Fluffy Thing. Everything you build is kept in this page's link, so sharing the link shares the pack.</div></div>
+  <nav>
+    <button id="newpack">New pack</button>
+    <button id="loadorig">Load the original 35</button>
+    <button id="copylink">Copy link</button>
+    <a id="play" class="primary" href="index.html"><button class="primary" tabindex="-1">Play this pack ▶</button></a>
+  </nav>
+</header>
+
+<div class="cols">
+  <aside class="panel" aria-label="Maps in this pack">
+    <h2>Pack</h2>
+    <ol class="maplist" id="maplist"></ol>
+    <div class="row"><button class="mini" id="addmap">+ Add map</button><button class="mini" id="dupmap">Duplicate</button><button class="mini" id="delmap">Delete</button></div>
+    <h2 style="margin-top:6px">This map</h2>
+    <div class="props">
+      <div><label class="help" for="mname">Title shown in the game</label><input type="text" id="mname" maxlength="60"></div>
+      <div class="row"><label for="mfile">File name</label><input type="text" id="mfile" maxlength="10" style="width:9em;font-family:var(--mono)"></div>
+      <div class="row"><label for="mtime">Time limit</label><input type="number" id="mtime" min="1" max="999"> <span class="help">seconds</span></div>
+      <div class="row"><label for="mpw">Password</label><input type="text" id="mpw" maxlength="12" style="width:9em;font-family:var(--mono)" placeholder="none"></div>
+    </div>
+  </aside>
+
+  <main class="panel" aria-label="Map">
+    <div class="canvaswrap"><canvas id="map" width="480" height="576" aria-label="Map grid"></canvas></div>
+    <div class="status" id="status">Pick a tool, then click or drag on the map.</div>
+    <div class="row"><button class="mini" id="undo">Undo</button><label><input type="checkbox" id="showlinks" checked> show teleport and switch links</label></div>
+  </main>
+
+  <aside class="panel" aria-label="Tools">
+    <h2>Tiles</h2>
+    <div class="pal" id="tilepal"></div>
+    <h2 style="margin-top:6px">Things</h2>
+    <div class="tools" id="things">
+      <button data-tool="gem"><span class="sprite" style="background-position: calc(-31 * 32px) 0"></span></button>
+      <button data-tool="monster" id="monbtn"><span class="sprite" id="monspr" style="background-position: calc(-1 * 32px) calc(-1 * 32px)"></span></button>
+      <button data-tool="start" id="startbtn"><span class="sprite" id="startspr" style="background-position: calc(-3 * 32px) calc(-2 * 32px)"></span></button>
+      <button data-tool="inspect">Inspect</button>
+    </div>
+    <div class="row" id="monopts"><label>Monster</label><select id="montype"><option value="0">Type 1</option><option value="1">Type 2</option></select><select id="mondir"><option value="1">Up</option><option value="2">Right</option><option value="3" selected>Down</option><option value="4">Left</option></select></div>
+    <div class="row" id="startopts"><label>Facing</label><select id="startdir"><option value="1">Up</option><option value="2">Right</option><option value="3" selected>Down</option><option value="4">Left</option></select></div>
+    <h2 style="margin-top:6px">Selected tile</h2>
+    <div class="props" id="props"><span class="help">Nothing selected.</span></div>
+    <div class="help" style="margin-top:6px">
+      <p><b>Button</b> tiles flip another tile between up to four types each press. <b>Teleport</b> tiles need a destination. <b>Electricity</b>, <b>rotating push</b> and <b>disappearing</b> tiles take a timing value (the originals use 30–80).</p>
+      <p>Gems: up to 64. Monsters: up to 16. Buttons: up to 16.</p>
+    </div>
+  </aside>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// Map pack codec shared by the game page and the editor.
+// A pack is { maps: [ { name, password, data: Uint8Array(4500) } ] }.
+// URL form: #p=<base64url(deflate-raw(payload))>, payload = [1][count] then per map [nlen][name][plen][password][4500 bytes]
+const RHFTPack = (() => {
+  const MAPSIZE = 4500;
+  function b64uEncode(bytes) { let s = ''; for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+  function b64uDecode(str) { str = str.replace(/-/g, '+').replace(/_/g, '/'); while (str.length % 4) str += '='; const bin = atob(str); const a = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return a; }
+  async function pump(bytes, Stream, fmt) {
+    if (typeof Stream === 'undefined') throw new Error('This browser cannot compress map packs (needs CompressionStream). Try a current Chrome, Safari or Firefox.');
+    const s = new Stream(fmt); const w = s.writable.getWriter(); w.write(bytes); w.close();
+    const out = new Uint8Array(await new Response(s.readable).arrayBuffer()); return out;
+  }
+  const latin = { enc: s => Uint8Array.from(s, c => c.charCodeAt(0) & 0xFF), dec: a => String.fromCharCode(...a) };
+  async function encode(pack) {
+    const parts = [Uint8Array.of(1, pack.maps.length)];
+    for (const m of pack.maps) {
+      const n = latin.enc(m.name.slice(0, 10)), p = latin.enc((m.password || '').slice(0, 20));
+      parts.push(Uint8Array.of(n.length), n, Uint8Array.of(p.length), p, m.data);
+    }
+    let len = 0; for (const x of parts) len += x.length;
+    const payload = new Uint8Array(len); let o = 0; for (const x of parts) { payload.set(x, o); o += x.length; }
+    return b64uEncode(await pump(payload, window.CompressionStream, 'deflate-raw'));
+  }
+  async function decode(str) {
+    const payload = await pump(b64uDecode(str), window.DecompressionStream, 'deflate-raw');
+    if (payload[0] !== 1) throw new Error('Unknown map pack version');
+    const count = payload[1]; let o = 2; const maps = [];
+    for (let i = 0; i < count; i++) {
+      const nl = payload[o++]; const name = latin.dec(payload.subarray(o, o + nl)); o += nl;
+      const pl = payload[o++]; const password = latin.dec(payload.subarray(o, o + pl)); o += pl;
+      const data = payload.slice(o, o + MAPSIZE); o += MAPSIZE;
+      if (data.length !== MAPSIZE) throw new Error('Map pack is truncated');
+      maps.push({ name, password, data });
+    }
+    return { maps };
+  }
+  function fromHash() { const m = /[#&]p=([A-Za-z0-9_-]+)/.exec(location.hash); return m ? m[1] : null; }
+  // MapList text as the game expects it: names, a line with *, then one password line per map (@ = none)
+  function mapList(pack) { return pack.maps.map(m => m.name).join('\n') + '\n*\n' + pack.maps.map(m => m.password ? m.password.toUpperCase() : '@').join('\n') + '\n'; }
+  return { MAPSIZE, encode, decode, fromHash, mapList, b64uEncode, b64uDecode };
+})();
+
+(function () {
+  const ORIG = "7V1dbBtXdr5DzpCjISlSDmVbjhOTcYPmoTEcO0AfEjShKFrm6oeKSK-b7gItIzMRYVlUJXlVL1DUyaZdZOEWLgJsi76sHoPtS4HtUwu0BoK0fTCwfSmKpi1g2Ss0qdGNgbxm43KkOZnjMa88o5k7vEOdY4z58c5weHTmzp17P54f5WSyvt5cXW-tMoUx9izblRizhTBhwoQPGlY8YjefNTjHGyHqib8rIUDn_IDamTBhwoQJy4NNeUjSV2EkO_Moc0t2t7iFzVfd2hIIp6zjSAZLzo-9d0Oxrq05RlWaa9cKK63u_-igsevFo-zE12k9-TXLdQ_rfuAoi5k30UvXY1-zVC52_fVruY8-M078A_v1y_-YKK2udjbWdua2Z2i8J0z4QHAJXtfBInDSBR7CQxunfYh0FqZzMoJ9IymZnRMR0TnhUWe9Tzof9ogxX3i0T_2ZMGHCxM0QNzOY3Iz5_DOsLYk4Gc1qUy1eJuF4VpIMDjdjWNfYnFdcXGwvLBY2mtdeQ2MU-6MvVk588RX7j_mXX5lab66-Mreyvvq7G6vt9ZZ5Dic3o1eWWgvrq-2FxEStNl6tEEdDmDBhwo_jvA9ezM_xQXF2Ybb7wU91tzkP7Yc8tvPOc9DsLLrfEvdBmDDhMDialLXmjRFfQxxNn0R38C-Ys0miV-BsMHcTZ4_69ZJEU0a6krKupTn_metstFYL5ztX11rWXrdSPFSaUNlI9zOJN662Fy4Xd86Xp_GeMGHCEeBFZMNmXOgZhH_coz0q-sesuQPZWbydZdbzX56Ao-JPSGMpYcKDyc0QO0LcTL8FYpsMZscxJRxYRxtxMYMnN1668VKS2f4zu7RKsQj74F9uHJBezI3rxUfb8HF6cai-0lxorS22VxL18nylNGOe-CQN_IQJc3HWBZZZ53xEdMZYk0yfI5yFIC8Biubi-DCDQsY4fUDhtBuSLXwNFziKAYg0xhImTJgwkTRE0kRL1B6kjNmGnWdIBlvMICfzOg9Z87rpTudyYX2xtVxYajVXug3L73hOQKOPt5pXZloXVnbO-CqN-IHOyCEUUWY9R633GcdqAdqjoH_S0p_6HmHC0Rsno8Bw8XRWPeIo6myOsWnrHP1iZqNiZ2yrqOic93ivEcNImNgZEmJn7DFTtdYgGlozpa1XYGgo9cxgCzz3zZA1k1gpXGkVrq4U930-o77RXl9YvNi89lqiPleamXlzJ3CKRn7ChAkHjEdY78AZ3mxf89iu7PG9qsDV7og1IjP0uhceQecKc3WjuNDN6zH90tlpf8XD8WRn9_cgZmRytFonTJiwZFhDq9-s9V6xmBtI9IHbTElZbTFHe5zTrlrteWKEiKXhCCSewcFMSWYnmoFEwQazg8jTaD-wPBqZMrKy3iysJ5ldyGuXYNnJFPzaazsHtArPrzGWubW59eV_vvi5-jfTd-O3Z-4a7LtbN__54SsPmj_ZZiubW8rNza34f83cZbf-YtuYaH-vvfzOeKe5SoWcCBMmLF3sR16ytaEfb4QwfzHPIIzjsgyOPjyPBV6MU4bsvK_-zOOX0sR1ECZMmLCn8TbpWAsTY0L8TNiSQP1QZXaCYMy7pNDanWKeBk9mZ2emDWbHOO1SK4W3Os3VS2vd99OWnDT_fSPPmf--kaL5D4k61-ksadXJ6VrNPOULNOQTJkw4JJyP-JLUzJkatcBQbOfDklFfbtL-RIWSMVzQXTLonOXQRW7snJaY-lI4emYiOOY4g4_BLYCeI4QPOj2jIXqGyBKiZ_ohQMkARQN1xVKMajQdtH4Az-X6RvvKFZOgWel0lvZ5Pq2x0V5b16eqs5NTtdlJHOHkxltfNkyPLcKE957eR6XUyXE0FmE9jzG5ojB5S3Ksf7-y7CoOfc4hfc54WN7i44-h8ygh6w86PI0wpvieceh5pk96Rs3Oe_XnuR73ncG5N2W4H485dJvrcT_S-EyY8GBgRrQMUTQSiPkTAGQG1q1X8JSJMzsCKm3tTztoHCjBDXlL4f2Q9Z7y18gvH938822gis1rvsOutFa7aPNnOnv9zvvDyv3uLORed9-nOqveuW69V17f_DjO_uRunm1uxXJ_fDenbG4puR_uvA7Vl9qXWqWN5rXEVHV6ujJvTgpO08BPmHBkcMoFdrNAdHMeETorHo93s9ARrbMMx8tQb1j0-d34WBke-7lCdo5sf476uBGV8ZkwYSJpSIikcS-Gg2gxrIV62iJswJ9GZbavBYRBpZidoiZlbUDi6GTayMhEeaIOhNxOGhqTXyk0N5rXTp061X1_9uzLZ8tvlydihbO2vD1hS2XCKWf1xmKrtLTUuqZ9qzIzXqN6Tv3FUa_kjN3k-6Wz4uP4bJ-w4mKJynPPNzjndNOe4LS7wf2ysyHAznv151gA_dnPZ6GmmhryuBHF3_CViOgW9Ro5bvokYcKECYeBwW8h6aBroF0nGocoGsGSYnb9PvB_gawkUGc2Y-2DrMFpRNnA5-CZCluCTBspwfOixvlKoTQ9XXkT7cdh4vmYPS5huhlezfWfUV5tLlxuL79j1dumTMGECRMmHFyWXtl0w2k5hl20ZyTT2SuWrQ8YEveZDEdPXiqXfET6OY1LhAkPHmbEvRA_I4FALBK8Qkoa7Fqjo_dQTQxnuCaJtuR--dxzwMuZXApQK7sFt597O_fT7vb3Zzd2tttsYmf775ELO9svu_vM7WF3n7mxCWZu-rn2amu2utDSGvOl6rR52hetr4tiKhrChAnLj1Ocdo1zDK895eKcMuisuTg-TJ1THrFond0U60oFhHnnF2F_LSCdw7w3tYDux36NJ6mI6KxFUGfChGXDRNEQRSODQGSLZtExmkXJwCsUhIeUNEPs0QJPaWtpnyZTRpeiGb_xEqQaMl1lTHal0Fy-VKgutBi78dLuv9y4XgSsF83PQOvuBvt224bGO1fe6nS-31rSztVqjTfNOevfPmEuS9g91nwc42aN50YHP8Vp_eis-NDfq85aQLp5vXZeK7YYEvQ30XYW0bc1wf3Zjw39_I1aQDYR0beD6oea4DEkL9hWIvqAn2eE1qfvDdOeimTfqwi4RorgcUATYNswx0wlxHsnzLE0zLmKCLuJfp56PQ9xNMTRyCCHLe4la_EsivUK2WjM_jvMHk0ZPMzs1MEZ630OcfC61a5b54U0tMD1YM4SXMty1nv4rgw6F2OPpjQmCV7Afcq8Bt_QK0V7_-1PesoF2P9dh-gznWUz53BR-1ZlevpNykRDmHC0cFBJJPuVLNiNuwMvm4wMOhsu9ORl0pEh6afhgn6UOatLVIq2y2bnKPbnQRo3ZB6fCROmSCcSt6IiGk1DY22qx_sUeq853kdZoKITJPiFV-xWA0mBU1ZbHL1CBSicZDjF7ATC5F4jv5jJgqEil3kNq-trhWbhisWxdBv2kSzYeONqe-Fyfb25up6ol2u18R2W5jdp5CdMeGBzqj7L5K0_6ybPrwx5tHk6mLZ9wcJPdbcbPdr7pT9PT2zbMY7NefqLuI9w_8Tt2J5HOe2HOe288-f7ZOcjfbLzIPXnKI4bUR-fB-k5SJhYGhJypAmapXHWy4ZV-xCzHVhwDhp4D0wMvAfnGHifIRNLL7dv__zncL3NZ-IbF6rlqUK9UZpvFGGk-uqrhw9v3fr4Y3Mzjzc35_sHD7780tzMY3fy0cw119b0ynRl7nxptoFT0tBTgHCYWIbskwnOzDMorAvWH4_kvBBur8eQncnOZOfBtjOtxAkTJkwsDYkfXxqVPRp6A741MfScTKL3kKYlNgAr9BRiZHABbhXZBQpuq2gfrv4EGYUNxOLEifyIjIAvDWQNNgmWawWTYmm-09o5wrsvTeLiYqvVKmq_XZmtzVKwkzzYa15J0efxo3_Mx3eJdubO-7BVKiCbpyTrbzEB144XUGEEZDcZ-nZQ_TYVkfEkzPtUxL0mg84yP3dkHrdjIY5XioD7zohIHxZtZ9JZ3Bh-EALhiKAhNxoZZMTql4pFqsSZ7Q6jMDuXTBoRMRmrDdwuIPAL8gkDyaMhEidtvWat44cR0ZViVB6q35JhdlDbxfMVU4p-zqc3Flvz7e-1VrVybXy-RBTNYOB8BHU-Ipk-Oc4UPeOifQTty4WoM66WbEYmnLEwz8sf40Po-OGA9HHzvSJ8Dtx8rxs93aQk5uUZGUWPaTdppnmYp9soenyPoL9H9fFdqo-_XXX0_3gPPf3Y2c219pMa208_caPDKLN_Z8ty2oPqz378Y5SA_t4wfXr89A3yDSJMOLoYlsDgk4CpA4ggyVrH4PaYNeccI4qHKJoABCKZcE4ZmPeoaNnu9JlJoec_fIYkmpL-1z-9m0QUXeN8pTBf_XZlnrH7MXb9rvr69Tvq6X_bjr-6uVXubocKm_dYbvPeMHvx85-xzXu_dZ3dV3OTd9KnN-8d6e57Nc_uJ-pX2kutojZTmp0lgoYw4QhjvFAPqraDCD3TLr7Xj85pwYtAXjCNIuCzIhaucQ4xykuX4vVvDCqZrte6ZH5IPa86ax7tf5jz2aMeddMC6hsZFySvn_aMg4QCB--YYP39BNJhYr1fPhCY3KQkwYQJP5mgiaEFr5OgAX8EvM-wxqM8kTNE0AQkUEPJ3HRmJwnWEEkzhF5xsBP41CTRMWn2eD1uaIsRkSOtJBFRV5-pTvvzoOle-8ZGp7q21Fy-tKaNV2fGa-YE5Q9p4JcCJxyTXHCS0yXTE09svf6y6ed74dfnFAvOu8PNgq9f2RxGkH68RWpQv7AHtSDw4zkTpp572Vx7AlEkg56iF5GkJ-m5n2dWitmO3DLp6ZXAw-R3vzL4eCV9_Yz_o2jxG5QXpWhyOsgxP_4EO_OqysmWuzkrmW1FYFjsJpgdUALkQYzZXjbOzClqj3bDIm2d7RBQohCpQyTNExbnqoNUyVj9NY76qcEeLaRNMhjyQ-X6nTi63o2LtUK1Pl2anag7jnz4d4x9-57CNp968NffGVPY-3fZ-c2tie6mGI17nz4092_e6-77XC9daX6_vfxOMTlxYXaqOjtpDkLvPWGBddCw0qfvkg3LYJ-grpci2P5ZFySWH52VEO2vCLZzVoDN-6Vztk_nD-qc-Yj0DV67HhE7KxHsG1Hpz0GNG4pgnUXPPWR4DgY1bg_SfCMq87oozc9T1mJYIxKlL4LT_yrM_uFwyLou6gFYoAOJB1vW-tuziPjDBZ5w4SfscZNC_TluveqINAcvmxRxItIJpAtm1vUqzZR-pzo7Wdzd9_LE2X2U3lYbi61KcnK-Oj5ebVCoE2HCg4F5vzibVV3P9MCHWG-PERlSIGLdePrLoHNUKuNG8RdVXg6oY5w-gD2dRpnt7i6DzrxwvePob8mHqHMU-0YU70GezkmPi2rRIVlu9PdTw4ye0YSDHLsSzA4D0YmkCV3g3gbvkYNAyDgF_m4Io0s6CBkc3oTrOqUtnLE-C4RMGpE3-gG1adSkXfygaKBr21hsFSqMdVt_1P33gbX96PkP7K37v7UVf_r8I9vzu5tR32ivLyzONJfb2rnpUv28ebNN0cBPOCQ8igY0md2HeYmNcSjMEYl1jvrE2ejT9_Ly-yge-4kfgsoPMQChCnslo8V5Up5huwkUTeHlSUk57l-YjKR82jmOMExI3CSuHuuTnYMKD43RuCFMZ9w_FbIzYcIDh8HzABJ1OvPRJNjjiYFh8Txm7YN2KJh8mD0eGgV1d4iS2ZukSTjGrYMikDsmgQiWJJqD6ehZhI9JE7cxMGK6vahoLKpfrDbK5wszpdlqqYiOmWidYY0dULacZbqvrco3TjTd1wa40SQbi63J5nprqF4uzVfK87WL5EpDOMwZaZgB_X70NPZgmYDm7tdP07yf6P1k3c0L0N-PP7YW0HlEsEZes5dm-sQ--UlWJKKUkGhbGZz-I3pl7aZ6c8bHZ4Pqz5gpEqGznyQuot1_ZGBCovIcJExYdgw_XWsOJkXltJMEz9JAzNkQO5hJVsCVBpd1grJNKmISwa0G2BtcTRvcaqBP4zZicyLA0pQn6nG0HjRdaUyGZYec2Weskz6-dLU132leSl6sTJdrMxXzRjtJAz9hibDourOidcaLlaxkduPhdJ_snPW4QOSVZcn2yW5uCDONQyQEpbMZA_bCEzDPTQa7tGguCMuso92chAz3IDJ7tTt1PimpnbMedQ6qPysB6Zx36Jz1oHNQ2K-dn43YmM_TuV_Yq87m6xgH5zl4rEcfc2KjBzbHhwSzkzeIHJ9FJ7ah-U_4GLKSQzyJ05UGSuc4swObnztCxA1lDQ5IsKvMEMIa6puYpAGiJsPs7MIk0RYza3CC2S5U49MXKoXx-Wp5qjBfK02gI91nDTamWq2VyY6ZNzgxWZ2cnN5haS7RyC9d1LoIPEg2EfGTpptgF68_yYrWWcR5ROvs1Z5KiP1EEdyeEmDzKOr8VHeb2-e9prg4T1A6KwLsHwvRzlHRmZdq3U3R9rRkz5cwn48xDjuH2Vc_3yXatkHZPM3BPNc8w4cOovrJsyHNGwelAHfKGgcwIwPvY-xRVxpwTXC2k_hLG4wDw-De09nBCICCzIngWq8xuwg3uNIkUD-FV0gdDK43kIkuxez0wOBOA3Vsh1DfhTTNUAB8mNlZbkjClU8ePrwPdZ3MbapSmStM1iBzcFd-9Rm7-dbdfzpx426O_dU2Y-9u32bqFyb-jdy7d9Wb727_e_e9uf8Tqz0511xfWGytJcsX6o3S_AQu7cSrl0hYHJa5BIAbnVUfOKhftoLSWfGh815lnuIB64w9BnDm0aDKOigRtLMInXnrRszledWZd72yEt-DioB7MIpj3TNoHfU0wsdctPOuF2_d6OZ6udH5uAs9n-Fgr33MCEhnrOdxhz69_haezkaIdn56D3322zdE2_kZjp2PuegzPJ2hBruxh55GQHY-5qIPH3ehc97jc2pQx7ooYVgPq6y3x0zWwcXEGYVBiUhKE7NsHTuA6_Mcs8OdoH9B6NcQ4lhwHW4o3RRndlgUZB7GvAxwLlDyCTI0G4jPoVJPcoiC7oG5UqN8vlL3xUUny52lq1eW1xLl86XZyR03mnYEHiuDlFsP6380gjZ3s3wzBCyxvbbvlbt4uMejRURWjZhj6XHmCZ91OqDvF8cCuqcyLo6XTef9jBtB94eM4HFD5krQRgTHNKdrjtYDy6wzpoJ5OsvWZ0bR_qjkKue5X_QLmxTEuR5UQ9TdJgyJx7RsxMe3qM-f4_ugWMD94DBRNBTsFJCMWPNGoFdUx3wS6jcADaM56F7NsanoXM48w0DRMPSdw9b-YboUfRP11nu_0JntFlWuTV-YmQWK5gdbjL234zrz4Ae_-uxB-cXP2eub9_5y68T24ssntl-49eF2-vf_7M6vzX24ffr0h9vq6Re7281fqPPt5cuJ8flSdbZOGYMHA-cjqHMU5wlBuY_LkIBGdKC7c_2o9vguP2uTrIA-prmws2idMz50xskgsKtPinO8m3Y3BYGDyoYqc99ww1eL1nnU6h9aCOOG0qdx46A9UygzMGHC7rGK1r1OVxlYE8OaF_bFmB2C4nStGWKPh0uRuHOhgSQsB7Guk4qexZCIJoaezUNEXxwIgfpe5j1gZgw26RU_59PLneX11ebaenJyvjYzU22YJ16jgZ-wBzzK7KxteCGoCf5eDRGKeIGI9fG6qBU9QQZyQre-91wfJv6KCxJChgXKkOMB-KS_RYZiueDXH2f8uARcsN1rX_WKxzh64h-B45x2N7EISoi25fm58-5fnv5m3MNcwDofiaCd3fZn8MXm9ednkT1F92c3-iclHjdkHp95eZzCKJAOsQF-fiSBsXc4RJ11RvPAfmPI_5HuQbrgvCC4PYUW0E6Spld7Es3Z8kTekBNND8FZgiEzMDhUQEknKHsFJZ0gHxIULXfGg5JET_BzoVybbcyX6g1f_WqitdBea3eW1xKTtYuVeoM8aQgTHmzMWwTkJdCHtzjIIew1ki1Mnc0F60NO-wt91tlNtINsdk756M8y6zxIieoNF9fFj27DjkX5fpO4u_EAk_kaZSLYrwgTDgMbaMPkQYrTTiKm9jYkVTmIyWiAiElYRAyU9wFPLyBrDGQnw0Hg6Mz28IJyUOSBEx0xa28DKWxe44lKuVqv1mbrp06dwsd5qb2dqF-78lZnKTE3X50t7-SimaJRn0o9BayziDRxMuhsSKbzKLN_VuLpmXah_yizfwZIUX_2zeLIEpenBKAzXiWHyX7xmIDjiP1yU_LnsGA7w8_5e8UfGS7PE2f-45gGiVEepBwdQZVYo9hqwgcdw-rWmVsGVsiUb4YYGtGStf5-BT23Ie4riWyjoPkBpLgGd6842ud0vUmhLY7m5joRI9JI5tbmVhJd7_qbM-O16d19-tz72yrb3Pq__3l4n7E5s-h2_MFH3xliv7d5j638ZLt7jf937t1Y99rPbXWv_6c62z1en29daq-2Ftb1yVptYvpCecrsQX8Q4RFbjTgeFoDD1NlPERk3xSxGrTsgyx53PsaZtnp9NstZqeEszRkOHmX27zFuCvrIjI9w_nYeNnx81yh6auEgHzPg5AyyYeIJfcCrDiYTdbLPdsbZYESc32vmE55fDGbtcKCI1uO-GwpQ_1RA5_FaBAcHSASlM2ZmROicDsjOKY_2d8NgqC7GT3z8IWZnBRfRr9xkSXJjZ1PHsZDGCq92dvZndUDmP2FiI4I65-naPYbBXwE2ndl-DFAE9zB73L9miD3uXwMra2c7rKCd7fh7D3rhbWAfVHR9YO53EFibHHs04Aky_OJAphRiFVUOkwPvDdTnEuhzmLHJoDVJnEiSvovpRwPzGfOaXGyut1YLG53VpUtwyNny2-UJL340_w8";
+  const W = 15, H = 18, CELL = 32, MAPSIZE = 4500;
+  const OFF = { time: 4, grid: 12, sw: 3252, mon: 3640, item: 3900, start: 4420, name: 4432 };
+  const TILE_NAMES = ["", "Normal", "Hole", "Fire", "Water", "Bomb", "Force right", "Force down", "Force left", "Force up", "Jump", "Slippy", "Cracked 1", "Cracked 2", "Cracked 3", "High", "Reduce time", "Button", "Electricity off", "Electricity on", "Exit", "Teleport", "Push right", "Push down", "Push left", "Push up", "Rotating push right", "Rotating push down", "Rotating push left", "Rotating push up", "Disappearing"];
+  const TIMED = new Set([18, 19, 26, 27, 28, 29, 30]);
+  // The game (and the original editor) place gems, monsters, the start, switch targets and teleport destinations one row below
+  // their stored y, i.e. stored y = grid row - 1. Everything below converts at the edges so the UI only ever shows grid rows.
+  const DIRS = ["", "Up", "Right", "Down", "Left"];
+
+  // ---- map access (edit the 4500-byte block in place so the format is exactly what the game reads)
+  const dv = m => new DataView(m.data.buffer, m.data.byteOffset, MAPSIZE);
+  const rd = (m, o) => dv(m).getInt32(o, true), wr = (m, o, v) => dv(m).setInt32(o, v, true);
+  const toff = (x, y) => OFF.grid + (y * W + x) * 12;
+  const tile = (m, x, y) => ({ t: rd(m, toff(x, y)), p1: rd(m, toff(x, y) + 4), p2: rd(m, toff(x, y) + 8) });
+  const setTile = (m, x, y, t, p1 = 0, p2 = 0) => { wr(m, toff(x, y), t); wr(m, toff(x, y) + 4, p1); wr(m, toff(x, y) + 8, p2); };
+  const swCount = m => rd(m, OFF.sw), swOff = i => OFF.sw + 4 + i * 24;  // x, y, t1..t4
+  const monCount = m => rd(m, OFF.mon), monOff = i => OFF.mon + 4 + i * 16; // type, x, y, dir
+  const itemCount = m => rd(m, OFF.item), itemOff = i => OFF.item + 4 + i * 8; // x, y
+  const getName = m => { let s = ''; for (let i = 0; i < 67; i++) { const c = m.data[OFF.name + i]; if (!c) break; s += String.fromCharCode(c); } return s; };
+  const setName = (m, s) => { for (let i = 0; i < 68; i++) m.data[OFF.name + i] = i < s.length && i < 67 ? s.charCodeAt(i) & 0xFF : 0; };
+  function newMapData(title) {
+    const m = { data: new Uint8Array(MAPSIZE) };
+    wr(m, 0, 1); wr(m, OFF.time, 60); wr(m, 8, 0);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) setTile(m, x, y, 2);
+    wr(m, OFF.sw, 0); for (let i = 0; i < 16 * 6; i++) wr(m, OFF.sw + 4 + i * 4, -1);
+    wr(m, OFF.mon, 0); wr(m, OFF.item, 0);
+    wr(m, OFF.start, 7); wr(m, OFF.start + 4, 7); wr(m, OFF.start + 8, 3);
+    for (let y = 7; y <= 9; y++) for (let x = 6; x <= 8; x++) setTile(m, x, y, 1);
+    setName(m, title);
+    return m.data;
+  }
+  function findItem(m, x, y) { for (let i = 0; i < itemCount(m); i++) if (rd(m, itemOff(i)) === x && rd(m, itemOff(i) + 4) + 1 === y) return i; return -1; }
+  function findMon(m, x, y) { for (let i = 0; i < monCount(m); i++) if (rd(m, monOff(i) + 4) === x && rd(m, monOff(i) + 8) + 1 === y) return i; return -1; }
+  function removeRec(m, countOff, recOff, size, i) { const n = rd(m, countOff); for (let k = i; k < n - 1; k++) m.data.copyWithin(recOff(k), recOff(k + 1), recOff(k + 1) + size); m.data.fill(0, recOff(n - 1), recOff(n - 1) + size); wr(m, countOff, n - 1); }
+  function removeSwitch(m, idx) { // idx 1-based; renumber buttons
+    const n = swCount(m); for (let k = idx - 1; k < n - 1; k++) m.data.copyWithin(swOff(k), swOff(k + 1), swOff(k + 1) + 24);
+    for (let j = 0; j < 6; j++) wr(m, swOff(n - 1) + j * 4, -1); wr(m, OFF.sw, n - 1);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const t = tile(m, x, y); if (t.t === 17 && t.p1 > idx) wr(m, toff(x, y) + 4, t.p1 - 1); }
+  }
+
+  // ---- pack state
+  let pack = { maps: [] }, cur = 0, tool = { kind: 'tile', t: 1 }, pending = null, selected = null, undoStack = [];
+  const $ = id => document.getElementById(id);
+  const canvas = $('map'), ctx = canvas.getContext('2d');
+  const sheet = new Image(); sheet.src = "data:image/png;base64,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";
+  const map = () => pack.maps[cur];
+  function uniqueName(base) { base = base.replace(/[^A-Za-z0-9!?_-]/g, '').slice(0, 8) || 'Map'; let n = base, i = 2; while (pack.maps.some(m => m.name.toLowerCase() === n.toLowerCase())) n = (base + i++).slice(0, 10); return n; }
+  function addMap(data, name, title) { const m = { name: uniqueName(name || 'Map' + (pack.maps.length + 1)), password: '', data: data || newMapData(title || 'New level') }; pack.maps.push(m); cur = pack.maps.length - 1; selected = null; refreshAll(); }
+
+  // ---- rendering
+  function drawSprite(col, row, x, y, size = CELL) { ctx.drawImage(sheet, col * 18 + 1, row * 18 + 1, 16, 16, x, y, size, size); }
+  function draw() {
+    const m = map(); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height); if (!m) return;
+    ctx.imageSmoothingEnabled = false;
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const t = tile(m, x, y).t; if (t >= 1 && t <= 30) drawSprite(t, 0, x * CELL, y * CELL); }
+    for (let i = 0; i < itemCount(m); i++) drawSprite(31, 0, rd(m, itemOff(i)) * CELL, (rd(m, itemOff(i) + 4) + 1) * CELL);
+    for (let i = 0; i < monCount(m); i++) { const o = monOff(i); drawSprite(rd(m, o) * 4 + rd(m, o + 12), 1, rd(m, o + 4) * CELL, (rd(m, o + 8) + 1) * CELL); }
+    { const sx = rd(m, OFF.start), sy = rd(m, OFF.start + 4) + 1, f = rd(m, OFF.start + 8); ctx.drawImage(sheet, f * 18, 2 * 18, 18, 18, sx * CELL - 2, sy * CELL - 2, CELL + 4, CELL + 4); }
+    ctx.strokeStyle = 'rgba(255,255,255,.07)'; ctx.lineWidth = 1;
+    for (let x = 1; x < W; x++) { ctx.beginPath(); ctx.moveTo(x * CELL + .5, 0); ctx.lineTo(x * CELL + .5, H * CELL); ctx.stroke(); }
+    for (let y = 1; y < H; y++) { ctx.beginPath(); ctx.moveTo(0, y * CELL + .5); ctx.lineTo(W * CELL, y * CELL + .5); ctx.stroke(); }
+    if ($('showlinks').checked) {
+      ctx.lineWidth = 2;
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+        const t = tile(m, x, y);
+        if (t.t === 21) link(x, y, t.p1, t.p2 + 1, '#5bd1e8');
+        if (t.t === 17 && t.p1 >= 1 && t.p1 <= swCount(m)) link(x, y, rd(m, swOff(t.p1 - 1)), rd(m, swOff(t.p1 - 1) + 4) + 1, '#e8893a');
+      }
+    }
+    if (selected) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(selected.x * CELL + 1, selected.y * CELL + 1, CELL - 2, CELL - 2); }
+  }
+  function link(x1, y1, x2, y2, color) {
+    const ax = x1 * CELL + CELL / 2, ay = y1 * CELL + CELL / 2, bx = x2 * CELL + CELL / 2, by = y2 * CELL + CELL / 2;
+    ctx.strokeStyle = color; ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+    ctx.beginPath(); ctx.arc(bx, by, 4, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // ---- editing
+  function snapshot() { const m = map(); if (!m) return; undoStack.push({ cur, data: m.data.slice() }); if (undoStack.length > 60) undoStack.shift(); }
+  function undo() { const s = undoStack.pop(); if (!s) return; cur = s.cur; pack.maps[cur].data.set(s.data); pending = null; refreshAll(); status('Undone.'); }
+  function status(s) { $('status').textContent = s; }
+  function cellFromEvent(e) { const r = canvas.getBoundingClientRect(); const x = Math.floor((e.clientX - r.left) / r.width * W), y = Math.floor((e.clientY - r.top) / r.height * H); return (x >= 0 && x < W && y >= 0 && y < H) ? { x, y } : null; }
+  let painting = false, lastCell = null;
+  canvas.addEventListener('pointerdown', e => { e.preventDefault(); const c = cellFromEvent(e); if (!c || !map()) return; canvas.setPointerCapture(e.pointerId); painting = tool.kind === 'tile' && !TIMED.has(tool.t) && tool.t !== 17 && tool.t !== 21; lastCell = c; snapshot(); act(c, true); });
+  canvas.addEventListener('pointermove', e => { if (!painting) return; const c = cellFromEvent(e); if (!c || (lastCell && c.x === lastCell.x && c.y === lastCell.y)) return; lastCell = c; act(c, false); });
+  const stopPaint = () => { painting = false; };
+  canvas.addEventListener('pointerup', stopPaint); canvas.addEventListener('pointercancel', stopPaint);
+  function act(c, first) {
+    const m = map(); const { x, y } = c;
+    if (y === 0 && (pending || ['gem', 'monster', 'start'].includes(tool.kind) || tool.t === 21)) { status('The top row cannot hold gems, monsters, the start or link targets (a quirk of the original format).'); return; }
+    if (pending) { // second click of a two-step placement
+      if (pending.kind === 'teleport') { wr(m, toff(pending.x, pending.y) + 4, x); wr(m, toff(pending.x, pending.y) + 8, y - 1); status(`Teleport at (${pending.x},${pending.y}) now goes to (${x},${y}).`); }
+      if (pending.kind === 'switch') { const o = swOff(pending.idx - 1); wr(m, o, x); wr(m, o + 4, y - 1); wr(m, o + 8, tile(m, x, y).t); wr(m, o + 12, -1); wr(m, o + 16, -1); wr(m, o + 20, -1); status(`Button ${pending.idx} now affects (${x},${y}). Set the types it cycles through below.`); select(pending.x, pending.y); }
+      pending = null; refresh(); return;
+    }
+    if (tool.kind === 'inspect') { select(x, y); return; }
+    if (tool.kind === 'gem') { if (!first) return; const i = findItem(m, x, y); if (i >= 0) { removeRec(m, OFF.item, itemOff, 8, i); status('Gem removed.'); } else if (itemCount(m) < 64) { const n = itemCount(m); wr(m, itemOff(n), x); wr(m, itemOff(n) + 4, y - 1); wr(m, OFF.item, n + 1); status(`Gem placed (${n + 1} of 64).`); } else status('This map already has 64 gems.'); refresh(); return; }
+    if (tool.kind === 'monster') { if (!first) return; const i = findMon(m, x, y); if (i >= 0) { removeRec(m, OFF.mon, monOff, 16, i); status('Monster removed.'); } else if (monCount(m) < 16) { const n = monCount(m), o = monOff(n); wr(m, o, +$('montype').value); wr(m, o + 4, x); wr(m, o + 8, y - 1); wr(m, o + 12, +$('mondir').value); wr(m, OFF.mon, n + 1); status(`Monster placed (${n + 1} of 16).`); } else status('This map already has 16 monsters.'); refresh(); return; }
+    if (tool.kind === 'start') { wr(m, OFF.start, x); wr(m, OFF.start + 4, y - 1); wr(m, OFF.start + 8, +$('startdir').value); status(`Start moved to (${x},${y}), facing ${DIRS[+$('startdir').value].toLowerCase()}.`); refresh(); return; }
+    // tile tool
+    const old = tile(m, x, y), t = tool.t;
+    if (old.t === 17 && t !== 17 && old.p1 >= 1 && old.p1 <= swCount(m)) removeSwitch(m, old.p1);
+    if (t === 17) { if (old.t === 17) { select(x, y); return; } if (swCount(m) >= 16) { status('This map already has 16 buttons.'); return; } const n = swCount(m) + 1; wr(m, OFF.sw, n); setTile(m, x, y, 17, n, 0); pending = { kind: 'switch', idx: n, x, y }; status('Now click the tile this button should change.'); refresh(); return; }
+    if (t === 21) { setTile(m, x, y, 21, x, y - 1); pending = { kind: 'teleport', x, y }; status('Now click where it teleports to.'); refresh(); return; }
+    setTile(m, x, y, t, TIMED.has(t) ? 30 : 0, 0);
+    if (TIMED.has(t)) select(x, y); else if (first) status(`${TILE_NAMES[t]} at (${x},${y}).`);
+    refresh();
+  }
+  function select(x, y) { selected = { x, y }; refresh(); }
+  function tileOptions(sel, allowNone) { let h = allowNone ? `<option value="-1"${sel === -1 ? ' selected' : ''}>(none)</option>` : ''; for (let t = 1; t <= 30; t++) h += `<option value="${t}"${sel === t ? ' selected' : ''}>${t} ${TILE_NAMES[t]}</option>`; return h; }
+  function renderProps() {
+    const m = map(), box = $('props'); if (!m || !selected) { box.innerHTML = '<span class="help">Click a tile with the Inspect tool to see its settings.</span>'; return; }
+    const { x, y } = selected, t = tile(m, x, y); let h = `<div><b>(${x},${y})</b> ${TILE_NAMES[t.t] || 'type ' + t.t}</div>`;
+    if (TIMED.has(t.t)) h += `<div class="row"><label for="ptime">Timing</label><input type="number" id="ptime" min="1" max="255" value="${t.p1}"></div>`;
+    if (t.t === 21) h += `<div class="row"><label>Destination (${t.p1},${t.p2 + 1})</label><button class="mini" id="retarget">Change</button></div>`;
+    if (t.t === 17) {
+      if (t.p1 >= 1 && t.p1 <= swCount(m)) { const o = swOff(t.p1 - 1); h += `<div class="row"><label>Button ${t.p1} changes tile (${rd(m, o)},${rd(m, o + 4) + 1})</label><button class="mini" id="retarget">Change</button></div><div class="help">Each press moves to the next type; empty slots are skipped.</div><div class="st">`; for (let k = 0; k < 4; k++) h += `<select data-slot="${k}" class="swslot">${tileOptions(rd(m, o + 8 + k * 4), true)}</select>`; h += '</div>'; }
+      else h += '<div class="help">This button is not linked to a switch.</div>';
+    }
+    box.innerHTML = h;
+    const pt = $('ptime'); if (pt) pt.addEventListener('change', () => { snapshot(); wr(m, toff(x, y) + 4, Math.max(1, Math.min(255, +pt.value || 30))); refresh(); });
+    const rt = $('retarget'); if (rt) rt.addEventListener('click', () => { snapshot(); pending = t.t === 21 ? { kind: 'teleport', x, y } : { kind: 'switch', idx: t.p1, x, y }; status(t.t === 21 ? 'Click the new destination.' : 'Click the tile this button should change.'); });
+    box.querySelectorAll('.swslot').forEach(s => s.addEventListener('change', () => { snapshot(); wr(m, swOff(t.p1 - 1) + 8 + (+s.dataset.slot) * 4, +s.value); refresh(); }));
+  }
+  function renderList() {
+    const ol = $('maplist'); ol.innerHTML = '';
+    pack.maps.forEach((m, i) => {
+      const li = document.createElement('li'); if (i === cur) li.className = 'sel';
+      li.innerHTML = `<button class="nm" title="${getName(m).replace(/"/g, '&quot;')}">${i + 1}. ${m.name}${m.password ? ' <span class="pw">🔑</span>' : ''}</button><button class="mini" data-mv="-1" aria-label="Move up">▲</button><button class="mini" data-mv="1" aria-label="Move down">▼</button>`;
+      li.querySelector('.nm').addEventListener('click', () => { cur = i; selected = null; pending = null; refreshAll(); });
+      li.querySelectorAll('[data-mv]').forEach(b => b.addEventListener('click', () => { const j = i + (+b.dataset.mv); if (j < 0 || j >= pack.maps.length) return; [pack.maps[i], pack.maps[j]] = [pack.maps[j], pack.maps[i]]; cur = j; refreshAll(); }));
+      ol.appendChild(li);
+    });
+  }
+  function renderMeta() { const m = map(); const dis = !m; ['mname', 'mfile', 'mtime', 'mpw'].forEach(id => $(id).disabled = dis); if (!m) return; $('mname').value = getName(m); $('mfile').value = m.name; $('mtime').value = rd(m, OFF.time); $('mpw').value = m.password; }
+  $('mname').addEventListener('input', () => { const m = map(); if (m) { setName(m, $('mname').value); renderList(); updateLink(); } });
+  $('mfile').addEventListener('change', () => { const m = map(); if (!m) return; const v = $('mfile').value.replace(/[^A-Za-z0-9!?_-]/g, '').slice(0, 10); m.name = v && !pack.maps.some(o => o !== m && o.name.toLowerCase() === v.toLowerCase()) ? v : uniqueName(v || m.name); renderList(); renderMeta(); updateLink(); });
+  $('mtime').addEventListener('change', () => { const m = map(); if (m) { wr(m, OFF.time, Math.max(1, Math.min(999, +$('mtime').value || 60))); updateLink(); } });
+  $('mpw').addEventListener('change', () => { const m = map(); if (m) { m.password = $('mpw').value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12); renderMeta(); renderList(); updateLink(); } });
+
+  // ---- link (the pack lives in the URL)
+  let linkTimer = null, linkStr = '';
+  function updateLink() { clearTimeout(linkTimer); linkTimer = setTimeout(async () => { try { linkStr = pack.maps.length ? await RHFTPack.encode(pack) : ''; history.replaceState(null, '', linkStr ? '#p=' + linkStr : location.pathname); $('play').href = 'index.html' + (linkStr ? '#p=' + linkStr : ''); } catch (e) { status(e.message); } }, 250); }
+  function refresh() { draw(); renderProps(); updateLink(); }
+  function refreshAll() { renderList(); renderMeta(); refresh(); }
+  function toast(s) { const t = $('toast'); t.textContent = s; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1800); }
+  $('copylink').addEventListener('click', async () => {
+    if (!pack.maps.length) { status('Add a map first.'); return; }
+    linkStr = await RHFTPack.encode(pack); const url = location.href.split('#')[0] + '#p=' + linkStr; history.replaceState(null, '', '#p=' + linkStr);
+    try { await navigator.clipboard.writeText(url); toast('Link copied (' + url.length + ' characters)'); }
+    catch (e) { prompt('Copy this link:', url); }
+  });
+
+  // ---- tools UI
+  const pal = $('tilepal');
+  for (let t = 1; t <= 30; t++) { const b = document.createElement('button'); b.dataset.t = t; b.title = TILE_NAMES[t]; b.innerHTML = `<span class="sprite" style="background-position: calc(-${t} * 32px) 0"></span><span>${TILE_NAMES[t]}</span>`; b.addEventListener('click', () => setTool({ kind: 'tile', t })); pal.appendChild(b); }
+  document.querySelectorAll('#things button').forEach(b => b.addEventListener('click', () => setTool({ kind: b.dataset.tool })));
+  function setTool(t) { tool = t; pending = null; document.querySelectorAll('#tilepal button, #things button').forEach(b => b.classList.toggle('on', (t.kind === 'tile' && +b.dataset.t === t.t) || b.dataset.tool === t.kind)); $('monopts').hidden = t.kind !== 'monster'; $('startopts').hidden = t.kind !== 'start'; status(t.kind === 'tile' ? `Painting ${TILE_NAMES[t.t]} tiles.` : { gem: 'Click to place or remove a gem.', monster: 'Click to place or remove a monster.', start: 'Click where the Thing starts.', inspect: 'Click a tile to see and edit its settings.' }[t.kind]); }
+  const updMon = () => { $('monspr').style.backgroundPosition = `calc(-${(+$('montype').value) * 4 + (+$('mondir').value)} * 32px) calc(-1 * 32px)`; };
+  $('montype').addEventListener('change', updMon); $('mondir').addEventListener('change', updMon);
+  $('startdir').addEventListener('change', () => { $('startspr').style.backgroundPosition = `calc(-${+$('startdir').value} * 32px) calc(-2 * 32px)`; });
+  $('undo').addEventListener('click', undo);
+  $('showlinks').addEventListener('change', draw);
+  window.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !/INPUT|SELECT/.test(e.target.tagName)) { e.preventDefault(); undo(); } });
+  $('addmap').addEventListener('click', () => { if (pack.maps.length >= 64) { status('A pack can hold 64 maps.'); return; } addMap(); });
+  $('dupmap').addEventListener('click', () => { const m = map(); if (m) addMap(m.data.slice(), m.name, null); });
+  $('delmap').addEventListener('click', () => { if (!map()) return; pack.maps.splice(cur, 1); cur = Math.max(0, Math.min(cur, pack.maps.length - 1)); selected = null; undoStack = []; refreshAll(); status('Map deleted.'); });
+  $('newpack').addEventListener('click', () => { pack = { maps: [] }; cur = 0; undoStack = []; addMap(null, 'Map1', 'My first level'); status('New pack with one empty map. Draw the floor with Normal tiles; everything else is a hole.'); });
+  $('loadorig').addEventListener('click', async () => { pack = await RHFTPack.decode(ORIG); cur = 0; selected = null; undoStack = []; refreshAll(); status('Loaded the 35 original levels. Changes stay in your link; the game itself is untouched.'); });
+
+  // ---- boot
+  (async () => {
+    const h = RHFTPack.fromHash();
+    if (h) { try { pack = await RHFTPack.decode(h); status(`Loaded a pack of ${pack.maps.length} map${pack.maps.length === 1 ? '' : 's'} from the link.`); } catch (e) { status('Could not read the pack in this link: ' + e.message); } }
+    if (!pack.maps.length) { addMap(null, 'Map1', 'My first level'); status('Draw the floor with Normal tiles; everything else is a hole. Put down some gems and an Exit, then press Play.'); }
+    setTool({ kind: 'tile', t: 1 });
+    sheet.onload = () => refreshAll(); if (sheet.complete) refreshAll();
+  })();
+})();
+</script>
+</body>
+</html>

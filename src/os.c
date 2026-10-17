@@ -24,7 +24,7 @@ static int set_error(u32 swi_num, u32 code, const char *msg) {
 }
 
 /* ------------------------------------------------------------------ files */
-#define MAX_FILES 160
+#define MAX_FILES 260
 struct fsfile { const char *name; const u8 *data; u32 size; u32 ftype; };
 static struct fsfile files[MAX_FILES]; static int nfiles;
 void fs_add(const char *name, const u8 *data, u32 size, u32 ftype) { if (nfiles < MAX_FILES) { files[nfiles].name = name; files[nfiles].data = data; files[nfiles].size = size; files[nfiles].ftype = ftype; nfiles++; } }
@@ -49,7 +49,7 @@ static void resolve_path(const char *in, char *out) {
 }
 static struct fsfile *fs_find(const char *riscos_name) {
     char path[256]; resolve_path(riscos_name, path);
-    for (int i = 0; i < nfiles; i++) if (name_eq_ci(files[i].name, path)) return &files[i];
+    for (int i = nfiles - 1; i >= 0; i--) if (name_eq_ci(files[i].name, path)) return &files[i]; /* later additions override */
     host_log("file not found:"); host_log(path);
     return 0;
 }

@@ -4,8 +4,12 @@
 #include "arm.h"
 extern u8 *rhft_pack_buffer(void); extern int rhft_boot(u32); extern int rhft_frame(void); extern const u8 *rhft_screen(void);
 extern void rhft_key(u32,u32); extern void rhft_char(u32); extern void rhft_audio(float*,int); extern void rhft_set_trace(int); extern u32 rhft_pc(void); extern u32 rhft_reg(int);
+#ifdef DEBUGTRACE
 extern u32 trace_ring[4096]; extern u32 trace_pos;
 void dump_trace(int n) { for (int i = n; i > 0; i--) fprintf(stderr, "%08X ", trace_ring[(trace_pos - i) & 4095]); fprintf(stderr, "\n"); }
+#else
+void dump_trace(int n) { (void)n; }
+#endif
 void host_log(const char *s) { fprintf(stderr, "[log] %s\n", s); if (strstr(s, "Undefined") || strstr(s, "runaway") || strstr(s, "misaligned")) dump_trace(40); }
 static void save_ppm(const char *fn, const u8 *scr) {
     FILE *f = fopen(fn, "wb"); fprintf(f, "P6 320 256 255\n");

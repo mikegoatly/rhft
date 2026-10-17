@@ -96,6 +96,9 @@ void rhft_audio(float *out, int nbuf) {
     for (int b = 0; b < nbuf; b++) { snd_generate(); for (int i = 0; i < 208; i++) out[b * 208 + i] = snd_out[i]; }
 }
 
+/* host adds/overrides a file after boot (e.g. a custom map pack); name and data must stay valid (inside the pack buffer) */
+void rhft_fs_add(const char *name, const u8 *data, u32 size) { fs_add(name, data, size, 0xFFD); }
+
 const u8 *rhft_screen(void) { return mem + (screen_display_addr() & MEM_MASK); }
 u8 *rhft_mem(void) { return mem; }
 void rhft_key(u32 code, u32 down) { key_set(code, down); }
