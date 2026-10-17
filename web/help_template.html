@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RHFT Guide</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400&display=swap">
+<style>
+/* Layout: a single reading column with a sticky contents strip; the tile reference is a two-column grid of picture + text. Same cabinet palette as the other pages. */
+:root {
+  --bg: #15181c; --panel: #1f242a; --line: #333a42; --fg: #e6e2d8; --muted: #9aa3ad; --accent: #e8893a; --accent2: #6f8cf0;
+  --display: "Chakra Petch", "Trebuchet MS", sans-serif; --body: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.55 var(--body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 18px 50px; }
+.wrap { max-width: 860px; margin: 0 auto; }
+h1 { font: 700 clamp(24px, 4vw, 34px) var(--display); margin: 0 0 4px; } h1 span { color: var(--accent); }
+h2 { font: 700 20px var(--display); color: var(--accent); margin: 40px 0 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+h3 { font: 600 13px var(--display); letter-spacing: .08em; text-transform: uppercase; color: var(--accent2); margin: 22px 0 6px; }
+p { margin: 0 0 12px; max-width: 68ch; } a { color: var(--accent2); }
+.sub { color: var(--muted); margin-bottom: 14px; }
+nav.toc { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 6px; }
+nav.toc a { font-size: 13px; color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px; text-decoration: none; }
+nav.toc a:hover { border-color: var(--accent); }
+.btn { display: inline-block; font: 700 15px var(--display); color: #1a1208; background: var(--accent); border-radius: 8px; padding: 10px 16px; text-decoration: none; }
+.btn.alt { background: var(--panel); color: var(--fg); border: 1px solid var(--line); font-family: var(--body); font-weight: 500; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 6px; }
+figure { margin: 14px 0; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+figure img { display: block; max-width: 100%; height: auto; image-rendering: pixelated; border-radius: 4px; }
+figure.smooth img { image-rendering: auto; }
+figcaption { color: var(--muted); font-size: 13px; margin-top: 8px; }
+.tiles { display: grid; grid-template-columns: 1fr; gap: 6px; margin: 10px 0; }
+.tile { display: grid; grid-template-columns: 104px 1fr; gap: 12px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+.tile img { width: 96px; height: auto; image-rendering: pixelated; border-radius: 3px; }
+.tile b { display: block; font-weight: 500; } .tile span { color: var(--muted); font-size: 14px; }
+.tile .num { font: 12px var(--mono); color: var(--muted); }
+.things { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
+.things .tile { grid-template-columns: 84px 1fr; } .things .tile img { width: 72px; }
+ol.steps { padding-left: 22px; } ol.steps li { margin-bottom: 8px; }
+kbd { font: 12px var(--mono); background: #0f1215; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; }
+.note { border-left: 3px solid var(--accent2); padding: 6px 12px; color: var(--muted); background: #1a1f25; border-radius: 0 6px 6px 0; margin: 10px 0 14px; max-width: 68ch; }
+.quote { font-style: italic; color: var(--muted); }
+table { border-collapse: collapse; margin: 8px 0 14px; font-size: 14px; } td, th { border-bottom: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; } th { color: var(--accent2); font-weight: 500; }
+code { font: 13px var(--mono); background: #0f1215; padding: 1px 5px; border-radius: 4px; }
+@media (max-width: 480px) { .tile { grid-template-columns: 72px 1fr; } .tile img { width: 64px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Rock <span>Hard</span> Fluffy Thing: the guide</h1>
+  <p class="sub">How the game works, what every tile does, how the monsters think, and how to build and share your own levels.</p>
+  <nav class="toc">
+    <a href="#story">The story</a><a href="#playing">Playing</a><a href="#tiles">Tiles</a><a href="#things">Gems, exit, monsters</a><a href="#switches">Switches &amp; teleports</a><a href="#editor">Building a level</a><a href="#sharing">Sharing packs</a><a href="#tips">Tips</a>
+  </nav>
+  <div class="actions"><a class="btn alt" href="index.html">Play the game</a><a class="btn" href="editor.html">Open the map editor</a></div>
+
+  <h2 id="story">The story</h2>
+  <p class="quote">Squidgy was just an ordinary Fluffy Thing, until one day all the Nasty Things and their robot drones stole all of the Fluffy Things' diamonds! Not only was this devastating to their economy, but diamonds are the only things Fluffy Things can eat. Squidgy decided to go out, as all good heroes do, and collect all the diamonds back from the Nasty Things deep down in their caves, thus saving his race from certain DOOM.</p>
+  <p>That is the 1996 manual, and it still covers the rules: get every diamond on the level, then get to the exit before the clock runs out. Every 500 points earns an extra life.</p>
+
+  <h2 id="playing">Playing</h2>
+  <p>Each level opens with its title and, if it has one, a password that takes you straight back to that level from the main menu. Press a key to start; the "Ready!" screen can be skipped with another key press. The play area is the big window; score, time left and lives are down the side.</p>
+  <table>
+    <tr><th>Keys</th><th></th></tr>
+    <tr><td><kbd>Z</kbd> <kbd>X</kbd></td><td>left and right</td></tr>
+    <tr><td><kbd>;</kbd> <kbd>/</kbd></td><td>up and down</td></tr>
+    <tr><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd></td><td>the arrow keys do the same thing on this version</td></tr>
+    <tr><td><kbd>Enter</kbd> <kbd>Space</kbd></td><td>choose a menu item, start a level</td></tr>
+    <tr><td><kbd>Esc</kbd></td><td>jumps the menu pointer to "Return to desktop"; "Define keys" in the menu lets you pick your own</td></tr>
+  </table>
+  <p>On a phone, tapping "Insert coin" switches to a handheld layout with a thumb-pad; slide your thumb across it rather than tapping, and use the ⌨ button when a level asks for a password.</p>
+  <div class="note">Once you have started in a direction you are committed to it until you reach the next tile, so press the next direction early. Squidgy keeps walking into whatever is in front of him, including holes.</div>
+
+  <h2 id="tiles">The tiles</h2>
+  <p>Levels are a 15 by 18 grid. Every cell is one of these tiles; the pictures are from the game itself. Numbers are the tile's type in the editor's palette.</p>
+  <figure><img src="__FRAME_TILES__" width="496" alt="In-game view of a level containing one of every tile type around Squidgy"><figcaption>A test level with one of every tile, as the game draws it. Tiles are read in the order shown below, left to right.</figcaption></figure>
+  <div class="tiles">
+__TILES__
+  </div>
+
+  <h2 id="things">Gems, the exit, and monsters</h2>
+  <div class="things">
+    <div class="tile"><img src="__THING_thing__" alt="Squidgy"><div><b>Squidgy</b><span>Starts on the tile you choose, facing the direction you choose. Up to 64 gems and 16 monsters can share a level with him.</span></div></div>
+    <div class="tile"><img src="__THING_gem__" alt="A diamond"><div><b>Diamond</b><span>10 points each. The exit stays shut until every diamond on the level has been collected.</span></div></div>
+    <div class="tile"><img src="__THING_drone__" alt="Robot drone"><div><b>Robot drone (helmet)</b><span>Walks straight ahead one tile at a time. When something blocks it, it always turns the same way: anticlockwise, so on an open floor it circles the room. Completely predictable, which is what makes a good puzzle.</span></div></div>
+    <div class="tile"><img src="__THING_nasty__" alt="Nasty Thing"><div><b>Nasty Thing (green)</b><span>Walks the same way, but when it has to turn it turns 90° towards wherever Squidgy is, judged along whichever axis you are further away on. It cannot reverse on the spot, so it tends to patrol the wall nearest you, shuttling back and forth.</span></div></div>
+  </div>
+  <h3>What stops a monster</h3>
+  <p>Monsters will not step onto a hole, lava, water or a high tile; they treat those like walls and turn instead (that is also how you fence them in). The edge of the map stops them too. They die if the tile under them becomes a hole, lava, water or live electricity, and a bomb under a monster blows up, killing it and leaving a plain tile. Arrow tiles work on monsters: a force or push arrow under a monster turns it to that direction, and if the arrow points it into a high tile it is crushed. Monsters ignore gems, teleports, slippy tiles and switches, and they do not crack cracked tiles. Touching one costs you a life.</p>
+  <figure><img src="__FRAME_THINGS__" width="496" alt="In-game view showing Squidgy, a diamond, a drone and a Nasty Thing"><figcaption>Squidgy, a diamond, a Nasty Thing (top right) and a drone (below it) shortly after the start of a level.</figcaption></figure>
+
+  <h2 id="switches">Switches and teleports</h2>
+  <h3>Buttons (switches)</h3>
+  <p>A button changes one other tile, anywhere on the map. Each button has a list of up to four tile types; the tile starts as whatever you drew on the map, and every press moves it on to the next type in the list, wrapping round after the last one that is filled in. The manual's example: a tile starts as a bomb and the button's list is <em>Plain, Bomb, Fire, (empty)</em>. The first press shows nothing, because the second entry is still a bomb; the second press makes lava; the third press goes back to plain. In the author's words, "it is up to the designer of a level to make sure the switches do <em>exactly</em> what they are designed to do", and some of the original levels deliberately need two presses.</p>
+  <p>A button's target can be any tile, but the list can only contain ordinary tiles: not another button, a teleport, electricity, a rotating push arrow or a disappearing tile. A level can have 16 buttons.</p>
+  <h3>Teleports</h3>
+  <p>Stepping on a teleport puts Squidgy on the destination tile and he carries on in the direction you are pressing. Destinations are usually another teleport (so the pair works both ways) or a plain tile. Make sure the tile after the destination, in the direction he will be walking, is somewhere he can stand.</p>
+  <h3>Timed tiles</h3>
+  <p>Electricity, rotating push arrows and the disappearing tile each take a timing value in hundredths of a second (1 to 255). For electricity it is how long it stays on or off; for a rotating arrow it is the time between one quarter turn and the next; for a disappearing tile it is the time between each stage of fading. The original levels mostly use values between 30 and 80.</p>
+
+  <h2 id="editor">Building a level</h2>
+  <figure class="smooth"><img src="__SHOT_EDITOR__" alt="The map editor with the level BeamMeUp loaded"><figcaption>The editor: your pack on the left, the map in the middle, tiles and things on the right. Blue lines show where teleports go; orange lines show which tile a button changes.</figcaption></figure>
+  <ol class="steps">
+    <li><b>Open the <a href="editor.html">map editor</a>.</b> It starts with one empty map: everything is a hole except a small plain block with Squidgy on it. "Load the original 35" instead gives you Mike's levels to pull apart.</li>
+    <li><b>Draw the floor.</b> Pick <em>Normal</em> in the tile palette and click or drag across the map. Everything you leave as <em>Hole</em> is a drop into the dark, so a level is really a path through a void. Remember Squidgy cannot stop mid-tile, so every junction needs somewhere safe to go.</li>
+    <li><b>Place the start.</b> Choose the Squidgy tool, pick a facing direction, click a floor tile.</li>
+    <li><b>Add diamonds and an exit.</b> The diamond tool toggles a gem on a tile. Put down an <em>Exit</em> tile somewhere reachable. A level is only finished once all the diamonds are collected and Squidgy stands on the exit.</li>
+    <li><b>Make it interesting.</b> Lava and water to walk around, slippy ice that keeps him sliding, force arrows that lock his direction, cracked tiles that only take two or three crossings, a bomb he has to jump over with a jump tile, a button that bridges a gap.</li>
+    <li><b>Set the clock and the name.</b> On the left, give the map a title (shown at the start of the level) and a time limit in seconds. The file name is what the pack lists; keep it to ten letters.</li>
+    <li><b>Test it.</b> "Play this pack" opens the game with your pack as the level list. Come back with the browser's back button; the editor keeps your work in its link.</li>
+  </ol>
+  <figure class="smooth"><img src="__SHOT_SWITCH__" alt="Inspecting a button tile in the editor"><figcaption>Inspect tool on a button: the panel shows which tile it changes and the four types it cycles through.</figcaption></figure>
+  <h3>Placing a button or a teleport</h3>
+  <p>Both take two clicks. Click once to put the tile down, then click the tile it affects (for a button) or where it leads (for a teleport). The Inspect tool shows the link afterwards and lets you change it; for a button it also lets you set the four types it cycles through. Timed tiles get a timing field in the same panel when you inspect them.</p>
+  <h3>Monsters</h3>
+  <p>Pick the monster tool, choose the kind and the direction it starts walking, and click a tile. Clicking a monster removes it. Because drones turn anticlockwise at every obstacle, a drone on a plain rectangle circles its edge forever; a Nasty Thing in the same room keeps turning towards you and ends up pacing the wall closest to you.</p>
+  <div class="note">One quirk inherited from the original: the top row of the grid cannot hold gems, monsters, the start, or be the target of a button or teleport. The editor will tell you if you try.</div>
+
+  <h2 id="sharing">Sharing a pack</h2>
+  <p>A pack is an ordered list of maps, each with a name, an optional password and the level itself. The editor keeps the whole pack in the page's address, so there is nothing to save or upload: press "Copy link" and send that link. Anyone who opens it in the editor sees your maps and can change their own copy; anyone who opens the matching game link plays them in order. The game link is simply <code>index.html#p=…</code> with the same code, which is what "Play this pack" produces.</p>
+  <p>Passwords are optional and are typed at the game's "Password" menu item to jump straight to that map. They are stored in upper case, letters and digits only. Links are long but harmless: all 35 original levels fit in about 9,000 characters, and a hand-made pack of a few levels is far smaller. If a messaging app mangles a long link, paste it into a note first.</p>
+
+  <h2 id="tips">Tips from the manual</h2>
+  <ol class="steps">
+    <li>Once you have started in a direction you are committed to moving that way, so plan ahead by pressing the key for the direction you want to go next before you need to.</li>
+    <li>Ice is tricky. Try to remember where you need to go, or else you panic and die horribly. If you do panic, try to get to solid ground.</li>
+    <li>Some exceptionally tricky switches need to be pressed twice (maybe more) before they have any effect, and even then you may not see the result.</li>
+    <li>The robot drones have very predictable behaviour, as would be expected from drones, but the Nasty Things are less predictable: their movements when they come to turn depend on where you are on the map relative to them.</li>
+    <li>Don't give up. Practice. Have fun. Don't cry. Don't pull your hair out. Enjoy.</li>
+  </ol>
+  <p class="sub" style="margin-top:30px">Rock Hard Fluffy Thing © 1996 Mike Goatly, released as public domain. Tile descriptions are from the game's own StrongHelp manual; monster behaviour was read from the game code.</p>
+</div>
+</body>
+</html>
