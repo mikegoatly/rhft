@@ -1,0 +1,38 @@
+Volume 127
+
+RMReInit Stasis
+RMReInit Amnesia
+RMReInit FastSpr
+
+StasisLink 1 1
+StasisLink 2 2
+StasisLink 3 3
+StasisLink 4 4
+StasisLink 5 5
+StasisLink 6 6
+StasisLink 7 7
+StasisLink 8 8
+
+StasisLoad 1 RHFTSounds:aieee!
+StasisLoad 2 RHFTSounds:clomping
+StasisLoad 3 RHFTSounds:explosion
+StasisLoad 4 RHFTSounds:hup
+StasisLoad 5 RHFTSounds:crack
+StasisLoad 6 RHFTSounds:ooff
+StasisLoad 8 RHFTSounds:oooohhh
+StasisLoad 9 RHFTSounds:pop
+StasisLoad 10 RHFTSounds:pusheduh
+StasisLoad 11 RHFTSounds:ready?
+StasisLoad 12 RHFTSounds:switch
+StasisLoad 13 RHFTSounds:teleport
+StasisLoad 14 RHFTSounds:telerev
+StasisLoad 15 RHFTSounds:extralife
+StasisLoad 16 RHFTSounds:uh-oh
+StasisLoad 17 RHFTSounds:uhh
+StasisLoad 18 RHFTSounds:creak
+StasisLoad 21 RHFTSounds:yeah
+StasisLoad 22 RHFTSounds:collect
+StasisLoad 23 RHFTSounds:bounce
+StasisLoad 24 RHFTSounds:burn
+
+Run <RHFT$Dir>.Code.!RunImage

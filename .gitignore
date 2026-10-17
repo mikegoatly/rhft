@@ -1,0 +1,4 @@
+rhft_native
+shots*/
+*.ppm
+__pycache__/

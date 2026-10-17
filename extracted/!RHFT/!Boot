@@ -1,0 +1,5 @@
+Set RHFT$Dir <Obey$Dir>
+Set RHFT$Path <Obey$Dir>.
+Set RHFTSounds$Path <Obey$Dir>.Sounds.
+Set RHFTMap$Path <Obey$Dir>.Maps.
+Iconsprites <RHFT$Dir>.!Sprites

@@ -1,0 +1,11 @@
+The three programs in this directory are of a rather unfinished nature, and should not be used by the casual user.
+
+CleanCopy     This makes a fresh copy of a StrongHelp manual, withouth the
+              internal fragmentation that builds up over time. This will
+              eventually surface in a dialogue box, but for the time being
+              one must edit the program before running it.
+
+Extract       If you should happen to have designed anything for the old
+              StrongHelp, then you can use this program to convert to the
+              new format. The conversion is far from complete, but it
+              sufficed for my purpose, and I will not develop it further

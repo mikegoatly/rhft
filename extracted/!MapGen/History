@@ -1,0 +1,12 @@
+History for RHFT map editor:
+
+V1.00 : Buggy first version.  I created all of the original maps using it.
+
+V1.00 - 1.02 : I realised I couldn't unleash the old version on people, so I
+        upgraded the code a bit:
+                   - Works in all graphics modes (not just 256 colours)
+                   - Doesn't mind mode changes now
+                   - Doesn't just crash out when there is an error
+                   - Refined graphics
+                   - Faster window redrawing
+

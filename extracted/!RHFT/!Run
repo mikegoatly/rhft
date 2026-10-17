@@ -1,0 +1,11 @@
+Set RHFT$Dir <Obey$Dir>
+Set RHFT$Path <Obey$Dir>.
+Set RHFTSounds$Path <Obey$Dir>.Sounds.
+
+RMEnsure FastSpr 3.01 RMLoad <RHFT$Dir>.Resources.FastSpr
+RMEnsure Amnesia 1.50 RMLoad <RHFT$Dir>.Resources.Amnesia
+RMEnsure Stasis 1.11 RMLoad <RHFT$Dir>.Resources.Stasis
+RMEnsure StasisRaw 1.00 RMLoad <RHFT$Dir>.Resources.StasisRaw
+RMEnsure Blitz 1.01 RMLoad <RHFT$Dir>.Resources.Blitz
+
+Run RHFT:Code.!Run2

@@ -1,0 +1,292 @@
+<title>Rock Hard Fluffy Thing</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400&display=swap">
+<style>
+/* Layout: one column; the screen is the hero, a short control strip sits under it, notes below. Dark-first, single look (an arcade cabinet in a dim room) */
+:root {
+  --bg: #15181c;        /* room */
+  --panel: #1f242a;     /* cabinet panel */
+  --line: #333a42;
+  --fg: #e6e2d8;        /* warm off-white, like the Thing's eyes */
+  --muted: #9aa3ad;
+  --accent: #e8893a;    /* the orange score tiles in the game's sidebar */
+  --accent2: #6f8cf0;   /* the blue menu lettering */
+  --display: "Chakra Petch", "Trebuchet MS", sans-serif;
+  --body: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 40px;
+}
+.wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 18px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(22px, 4vw, 34px); margin: 0; letter-spacing: .01em; text-wrap: balance; }
+h1 span { color: var(--accent); }
+.sub { color: var(--muted); font-size: 14px; margin: 0; }
+.cab { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 12px; justify-items: center; }
+.screen { position: relative; width: 100%; max-width: 800px; aspect-ratio: 320 / 256; background: #000; border-radius: 4px; overflow: hidden; }
+canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+.overlay { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(10,12,14,.82); text-align: center; padding: 20px; }
+.overlay p { margin: 0 0 14px; color: var(--muted); max-width: 40ch; }
+button { font: 500 15px var(--body); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 18px; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button:focus-visible { outline: 2px solid var(--accent2); outline-offset: 2px; }
+button.primary { background: var(--accent); color: #1a1208; border-color: var(--accent); font-family: var(--display); font-weight: 700; font-size: 18px; padding: 12px 26px; letter-spacing: .02em; }
+.strip { display: flex; flex-wrap: wrap; gap: 8px 18px; justify-content: center; align-items: center; color: var(--muted); font-size: 13px; width: 100%; }
+.strip label { display: inline-flex; gap: 6px; align-items: center; }
+kbd { font: 12px var(--mono); background: #0f1215; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 1px 6px; color: var(--fg); }
+.pad { display: none; width: 100%; max-width: 480px; grid-template-columns: repeat(3, 1fr) 1fr 1fr; grid-template-areas: ". up . enter esc" "left down right space space"; gap: 8px; }
+@media (pointer: coarse) { .pad { display: grid; } }
+.pad button { font-size: 20px; padding: 14px 0; touch-action: none; user-select: none; -webkit-user-select: none; }
+.pad .up{grid-area:up}.pad .down{grid-area:down}.pad .left{grid-area:left}.pad .right{grid-area:right}.pad .enter{grid-area:enter;font-size:14px}.pad .esc{grid-area:esc;font-size:14px}.pad .space{grid-area:space;font-size:14px}
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px 28px; }
+.notes h2 { font-family: var(--display); font-size: 15px; letter-spacing: .06em; text-transform: uppercase; color: var(--accent2); margin: 0 0 6px; }
+.notes p { margin: 0 0 8px; color: var(--muted); max-width: 62ch; }
+.notes p b { color: var(--fg); font-weight: 500; }
+.keys { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; color: var(--muted); font-size: 14px; margin: 0; }
+.keys dt { margin: 0; } .keys dd { margin: 0; }
+.stat { font: 12px var(--mono); color: var(--muted); }
+footer { color: var(--muted); font-size: 13px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Rock <span>Hard</span> Fluffy Thing</h1>
+    <p class="sub">Acorn Risc PC, 1996 · running in your browser from the original code</p>
+  </header>
+
+  <section class="cab" aria-label="Game">
+    <div class="screen">
+      <canvas id="screen" width="320" height="256" aria-label="Game display"></canvas>
+      <div class="overlay" id="overlay">
+        <div>
+          <p id="ovtext">The original 1996 ARM machine code, FastSpr sprites and Stasis samples, all run by an ARM emulator compiled to WebAssembly.</p>
+          <button class="primary" id="start">Insert coin</button>
+          <p class="stat" id="stat" style="margin-top:12px"></p>
+        </div>
+      </div>
+    </div>
+    <div class="strip">
+      <label><input type="checkbox" id="mute"> Mute</label>
+      <label>Size <select id="scale"><option value="fit">Fit</option><option value="2">2×</option><option value="3">3×</option></select></label>
+      <span class="stat" id="fps"></span>
+    </div>
+    <div class="pad" aria-label="Touch controls">
+      <button class="up" data-key="79" aria-label="Up">▲</button>
+      <button class="left" data-key="97" aria-label="Left">◀</button>
+      <button class="down" data-key="104" aria-label="Down">▼</button>
+      <button class="right" data-key="66" aria-label="Right">▶</button>
+      <button class="enter" data-key="73" data-char="13">Enter</button>
+      <button class="esc" data-key="112" data-char="27">Esc</button>
+      <button class="space" data-key="98" data-char="32">Space</button>
+    </div>
+  </section>
+
+  <section class="notes">
+    <div>
+      <h2>How to play</h2>
+      <p>Guide the Thing around the tiles, grab every gem and get out before the timer runs out. Fall off the edge and you lose a life. Each level ends with a password so you can come back later.</p>
+      <dl class="keys">
+        <dt><kbd>Z</kbd> <kbd>X</kbd></dt><dd>left / right</dd>
+        <dt><kbd>;</kbd> <kbd>/</kbd></dt><dd>up / down</dd>
+        <dt><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd></dt><dd>arrow keys do the same</dd>
+        <dt><kbd>Enter</kbd> <kbd>Space</kbd></dt><dd>choose a menu item, start a level</dd>
+      </dl>
+    </div>
+    <div>
+      <h2>Under the hood</h2>
+      <p>The game shipped as 40 KB of hand-written ARM code plus four third-party modules (FastSpr, Amnesia, Blitz and Stasis). None of that was changed: a small 26-bit ARM interpreter written in C and compiled to WebAssembly runs it as-is, and the handful of RISC OS calls the game makes (screen banks, keyboard scan, file loads, the sound channel handler) are provided by the host page.</p>
+      <p>Screen is MODE 13, 320×256 in 256 colours, 50 frames a second. Sound is the original 8-bit logarithmic VIDC samples, mixed at 20.8 kHz.</p>
+    </div>
+  </section>
+  <footer>© 1996 Mike Goatly. Released as public domain by the author. Maps: 35 levels plus the three example maps.</footer>
+</div>
+
+<script>
+(function () {
+  const WASM_B64 = "__WASM__";
+  const PACK_B64 = "__PACK__";
+  function b64(s) { const bin = atob(s); const a = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return a; }
+
+  const canvas = document.getElementById('screen');
+  const ctx = canvas.getContext('2d');
+  const img = ctx.createImageData(320, 256);
+  const pix32 = new Uint32Array(img.data.buffer);
+  const overlay = document.getElementById('overlay');
+  const ovtext = document.getElementById('ovtext');
+  const stat = document.getElementById('stat');
+  const fpsEl = document.getElementById('fps');
+  const startBtn = document.getElementById('start');
+
+  // MODE 13 default palette: bit7 blue hi, 6 green hi, 5 green lo, 4 red hi, 3 blue lo, 2 red lo, 1-0 tint
+  const pal = new Uint32Array(256);
+  for (let p = 0; p < 256; p++) {
+    const t = p & 3;
+    const r = (((p & 0x10) ? 8 : 0) | ((p & 4) ? 4 : 0) | t) * 17;
+    const g = (((p & 0x40) ? 8 : 0) | ((p & 0x20) ? 4 : 0) | t) * 17;
+    const b = (((p & 0x80) ? 8 : 0) | ((p & 8) ? 4 : 0) | t) * 17;
+    pal[p] = (255 << 24) | (b << 16) | (g << 8) | r;
+  }
+
+  // RISC OS internal key numbers (INKEY -(n+1))
+  const KEYS = {
+    KeyA:65, KeyB:100, KeyC:82, KeyD:50, KeyE:34, KeyF:67, KeyG:83, KeyH:84, KeyI:37, KeyJ:69, KeyK:70, KeyL:86, KeyM:101,
+    KeyN:85, KeyO:54, KeyP:55, KeyQ:16, KeyR:51, KeyS:81, KeyT:35, KeyU:53, KeyV:99, KeyW:33, KeyX:66, KeyY:68, KeyZ:97,
+    Digit0:39, Digit1:48, Digit2:49, Digit3:17, Digit4:18, Digit5:19, Digit6:52, Digit7:36, Digit8:21, Digit9:38,
+    Space:98, Enter:73, NumpadEnter:60, Escape:112, Tab:96, Backspace:89, Delete:89,
+    ShiftLeft:3, ShiftRight:6, ControlLeft:4, ControlRight:7, AltLeft:5, AltRight:8,
+    Semicolon:79, Quote:80, Slash:104, Period:103, Comma:102, Minus:23, Equal:93, BracketLeft:56, BracketRight:88, Backslash:120, Backquote:45,
+    F1:113, F2:114, F3:115, F4:20, F5:116, F6:117, F7:22, F8:118, F9:119, F10:30, F11:28, F12:29,
+    // arrows act as the game's default movement keys
+    ArrowLeft:97, ArrowRight:66, ArrowUp:79, ArrowDown:104
+  };
+
+  let ex = null, memory = null, running = false, muted = false, audioCtx = null, workletNode = null, lastT = 0, acc = 0, frames = 0, fpsT = 0;
+  const FRAME = 1000 / 50;
+
+  function log(p, l) { try { const s = new TextDecoder().decode(new Uint8Array(memory.buffer, p, l)); if (s.indexOf('SWI') < 0) console.log('[rhft]', s); } catch (e) {} }
+
+  async function boot() {
+    const wasm = b64(WASM_B64); const pack = b64(PACK_B64);
+    const { instance } = await WebAssembly.instantiate(wasm, { env: { js_log: log } });
+    ex = instance.exports; memory = ex.memory;
+    new Uint8Array(memory.buffer, ex.rhft_pack_buffer(), pack.length).set(pack);
+    if (ex.rhft_boot(pack.length) !== 0) throw new Error('boot failed');
+  }
+
+  function draw() {
+    const scr = new Uint8Array(memory.buffer, ex.rhft_screen(), 320 * 256);
+    for (let i = 0; i < 320 * 256; i++) pix32[i] = pal[scr[i]];
+    ctx.putImageData(img, 0, 0);
+  }
+
+  const audioBuf = new Float32Array(416);
+  function pumpAudio() {
+    if (!workletNode) return;
+    ex.rhft_audio(audioPtr, 2);
+    const src = new Float32Array(memory.buffer, audioPtr, 416);
+    if (!muted) workletNode.port.postMessage(src.slice());
+  }
+  let audioPtr = 0;
+
+  async function startAudio() {
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const code = `
+        class RhftOut extends AudioWorkletProcessor {
+          constructor() { super(); this.q = []; this.pos = 0; this.frac = 0; this.step = 20800 / sampleRate; this.prev = 0; this.port.onmessage = e => { this.q.push(e.data); if (this.q.length > 12) this.q.shift(); }; }
+          process(inputs, outputs) {
+            const out = outputs[0][0];
+            for (let i = 0; i < out.length; i++) {
+              let cur = this.q.length ? this.q[0] : null;
+              if (!cur) { out[i] = 0; continue; }
+              const a = this.prev, b = cur[this.pos];
+              out[i] = a + (b - a) * this.frac;
+              this.frac += this.step;
+              while (this.frac >= 1) { this.frac -= 1; this.prev = cur[this.pos]; this.pos++; if (this.pos >= cur.length) { this.pos = 0; this.q.shift(); cur = this.q[0]; if (!cur) break; } }
+            }
+            return true;
+          }
+        }
+        registerProcessor('rhft-out', RhftOut);`;
+      const gain = audioCtx.createGain(); gain.gain.value = 0.8; gain.connect(audioCtx.destination);
+      if (audioCtx.audioWorklet) {
+        const url = URL.createObjectURL(new Blob([code], { type: 'application/javascript' }));
+        await audioCtx.audioWorklet.addModule(url);
+        workletNode = new AudioWorkletNode(audioCtx, 'rhft-out', { outputChannelCount: [1] });
+        workletNode.connect(gain);
+      } else {
+        // fallback: ScriptProcessorNode with the same queue/resampling logic on the main thread
+        const sp = audioCtx.createScriptProcessor(2048, 0, 1);
+        const st = { q: [], pos: 0, frac: 0, step: 20800 / audioCtx.sampleRate, prev: 0 };
+        sp.onaudioprocess = ev => {
+          const out = ev.outputBuffer.getChannelData(0);
+          for (let i = 0; i < out.length; i++) {
+            let cur = st.q.length ? st.q[0] : null;
+            if (!cur) { out[i] = 0; continue; }
+            const a = st.prev, b = cur[st.pos]; out[i] = a + (b - a) * st.frac; st.frac += st.step;
+            while (st.frac >= 1) { st.frac -= 1; st.prev = cur[st.pos]; st.pos++; if (st.pos >= cur.length) { st.pos = 0; st.q.shift(); cur = st.q[0]; if (!cur) break; } }
+          }
+        };
+        sp.connect(gain);
+        workletNode = { port: { postMessage: d => { st.q.push(d); if (st.q.length > 12) st.q.shift(); } } };
+      }
+      if (audioCtx.state !== 'running') await audioCtx.resume();
+    } catch (e) { console.warn('audio unavailable', e); workletNode = null; }
+  }
+
+  function tick(t) {
+    if (!running) return;
+    requestAnimationFrame(tick);
+    if (!lastT) lastT = t;
+    acc += t - lastT; lastT = t;
+    if (acc > FRAME * 4) acc = FRAME * 4;
+    let n = 0;
+    while (acc >= FRAME && n < 4) {
+      const r = ex.rhft_frame();
+      pumpAudio();
+      acc -= FRAME; n++; frames++;
+      if (r === 2) { halted(); return; }
+    }
+    if (n) draw();
+    if (t - fpsT > 1000) { fpsEl.textContent = frames + ' fps'; frames = 0; fpsT = t; }
+  }
+
+  function halted() {
+    running = false;
+    ovtext.textContent = 'The game returned to the desktop. There is no desktop here, so:';
+    startBtn.textContent = 'Play again';
+    overlay.hidden = false;
+  }
+
+  function isTyping(e) { return e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT'); }
+  window.addEventListener('keydown', e => {
+    if (!running || isTyping(e)) return;
+    const k = KEYS[e.code];
+    if (k !== undefined) { if (!e.repeat) downAt[k] = performance.now(); ex.rhft_key(k, 1); e.preventDefault(); }
+    if (e.repeat) return;
+    if (e.key.length === 1) ex.rhft_char(e.key.charCodeAt(0) & 0xFF);
+    else if (e.key === 'Enter') ex.rhft_char(13);
+    else if (e.key === 'Escape') ex.rhft_char(27);
+    else if (e.key === 'Backspace') ex.rhft_char(127);
+  });
+  // a tap shorter than three frames would be missed by the game's 50 Hz keyboard scan, so releases are held back a little
+  const downAt = {};
+  function release(k) { const dt = performance.now() - (downAt[k] || 0); if (dt < 70) setTimeout(() => ex.rhft_key(k, 0), 70 - dt); else ex.rhft_key(k, 0); }
+  window.addEventListener('keyup', e => { if (!ex) return; const k = KEYS[e.code]; if (k !== undefined) { release(k); e.preventDefault(); } });
+  window.addEventListener('blur', () => { if (ex) for (const c in KEYS) ex.rhft_key(KEYS[c], 0); });
+
+  // touch pad
+  document.querySelectorAll('.pad button').forEach(b => {
+    const k = +b.dataset.key, ch = b.dataset.char ? +b.dataset.char : null;
+    const down = e => { e.preventDefault(); if (!ex) return; downAt[k] = performance.now(); ex.rhft_key(k, 1); if (ch !== null) ex.rhft_char(ch); b.style.borderColor = 'var(--accent)'; };
+    const up = e => { e.preventDefault(); if (!ex) return; release(k); b.style.borderColor = ''; };
+    b.addEventListener('pointerdown', down); b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up); b.addEventListener('pointerleave', up);
+  });
+
+  document.getElementById('mute').addEventListener('change', e => { muted = e.target.checked; });
+  document.getElementById('scale').addEventListener('change', e => {
+    const s = document.querySelector('.screen');
+    s.style.maxWidth = e.target.value === 'fit' ? '800px' : (320 * +e.target.value) + 'px';
+  });
+
+  startBtn.addEventListener('click', async () => {
+    startBtn.disabled = true;
+    try {
+      if (!ex) { stat.textContent = 'loading…'; await boot(); audioPtr = ex.rhft_pack_buffer() + ex.rhft_pack_capacity() - 416 * 4 - 64; }
+      else if (ex.rhft_halted()) { const pack = b64(PACK_B64); new Uint8Array(memory.buffer, ex.rhft_pack_buffer(), pack.length).set(pack); ex.rhft_boot(pack.length); }
+      if (!audioCtx) await startAudio(); else if (audioCtx.state !== 'running') await audioCtx.resume();
+      overlay.hidden = true; running = true; lastT = 0; acc = 0; stat.textContent = '';
+      requestAnimationFrame(tick);
+    } catch (e) { stat.textContent = 'Could not start: ' + e.message; console.error(e); }
+    startBtn.disabled = false;
+  });
+
+  // first still frame: paint the title screen once so the page is not blank before the coin goes in
+  (async () => { try { await boot(); for (let i = 0; i < 110; i++) ex.rhft_frame(); draw(); audioPtr = ex.rhft_pack_buffer() + ex.rhft_pack_capacity() - 416 * 4 - 64; } catch (e) { stat.textContent = 'This browser cannot run the emulator: ' + e.message; } })();
+})();
+</script>
