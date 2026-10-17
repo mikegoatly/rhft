@@ -16,7 +16,7 @@ compiled to WebAssembly.
 - `tools/hammer.py`   stand-alone decoder for Andy Southgate's Hammer compression (maps + graphics)
 - `tools/armdis.py`   capstone-based disassembler with RISC OS SWI names
 - `tools/build_page.py` inlines rhft.wasm + rhft.pack into web/template.html -> web/rhft.html
-- `docs/`          the GitHub Pages site: `index.html` (game), `editor.html` (map editor), `help.html` (guide), `rhft.wasm`, `rhft.pack`
+- `docs/`          (generated, git-ignored) the site: `index.html` (game), `editor.html` (map editor), `help.html` (guide), `rhft.wasm`, `rhft.pack`
 - `web/pack.js`    map-pack codec shared by both pages (deflate-raw + base64url in the URL fragment, `#p=...`)
 - `web/editor_template.html`, `tools/build_editor.py`, `tools/build_editor_assets.py`  the editor and its graphics (decoded from !MapGen's sprite files)
 - `web/help_template.html`, `tools/build_help.py`, `tools/build_help_assets.py` the guide; its tile pictures are cropped from emulator screenshots of a showcase level (`tools/runmap.js` runs any raw map headlessly and dumps frames)
@@ -25,10 +25,10 @@ compiled to WebAssembly.
 
 ## Publishing on GitHub Pages
 
-The site is the `docs/` folder. Push the repo, then in the repository settings choose
-Pages -> Source: "Deploy from a branch", branch `main`, folder `/docs`. A minute later the
-game is at `https://<user>.github.io/<repo>/`. Nothing needs compiling on GitHub's side;
-`docs/rhft.wasm` and `docs/rhft.pack` are committed build outputs (`make` regenerates them).
+`docs/` is build output and is not committed. `.github/workflows/pages.yml` runs `build.sh` on every push
+to `main` and deploys the result, so the live site always matches the sources in `src/`, `web/` and `tools/`.
+One-time setup in the repository settings: Pages -> Source: "GitHub Actions". To preview locally,
+run `sh build.sh` (needs clang with wasm32 support, wasm-ld and python3) and then `cd docs && python3 -m http.server`.
 
 ## Map packs
 

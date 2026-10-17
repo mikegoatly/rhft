@@ -1,4 +1,9 @@
+# build output: GitHub Actions rebuilds docs/ from src/, web/ and tools/ on every push
+docs/
+web/rhft.html
 rhft_native
 shots*/
 *.ppm
 __pycache__/
+README.md.bak
+Claude outputs/

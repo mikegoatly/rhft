@@ -369,8 +369,8 @@ static void swi_os_gbpb(u32 num) {
     if (r0 == 3 || r0 == 4) {
         struct fh *h = fs_handle(R[1]); if (!h) { set_error(num, 0xDE, "Channel"); return; }
         if (r0 == 3) h->ptr = R[4];
-        u32 n = R[3], p = R[2]; u32 done = 0;
-        while (n > 0 && h->ptr < h->f->size) { wr8(p++, h->f->data[h->ptr++]); n--; done++; }
+        u32 n = R[3], p = R[2];
+        while (n > 0 && h->ptr < h->f->size) { wr8(p++, h->f->data[h->ptr++]); n--; }
         R[2] = p; R[3] = n; R[4] = h->ptr;
         if (n) psr |= PSR_C; else psr &= ~PSR_C;
         return;
@@ -492,7 +492,7 @@ void os_swi(u32 num) {
     switch (n) {
     case 0x00: vdu_char(R[0]); break;
     case 0x01: { /* OS_WriteS: inline string after SWI */
-        u32 p = cpu_pc; char b[256]; u32 len = rdstr(p, b, 256); host_log(b);
+        u32 p = cpu_pc; char b[256]; rdstr(p, b, 256); host_log(b);
         /* skip string + terminator, word align */
         u32 e = p; while (rd8(e)) e++; e++; cpu_pc = (e + 3) & ~3u; break; }
     case 0x02: swi_write0(R[0]); { u32 e = R[0]; while (rd8(e)) e++; R[0] = e + 1; } break;
