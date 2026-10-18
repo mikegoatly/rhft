@@ -1,3 +1,0 @@
-SET StrongHelp$Dir <Obey$Dir>
-IconSprites <Obey$Dir>.!Sprites
-IF "<Alias$@RunType_3d6>" = "" THEN Set Alias$@RunType_3d6 Run <Obey$Dir>.!Run %%*0

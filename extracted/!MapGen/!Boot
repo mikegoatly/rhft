@@ -1,5 +1,0 @@
-Set RHFTMapDes$Dir <Obey$Dir>
-Iconsprites <RHFTMapDes$Dir>.!Sprites
-
-Set File$Type_31e RHFTMap
-Set Alias$@RunType_31e Run <Obey$Dir>.!Run %%*0

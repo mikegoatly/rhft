@@ -21,7 +21,8 @@ compiled to WebAssembly.
 - `web/editor_template.html`, `tools/build_editor.py`, `tools/build_editor_assets.py`  the editor and its graphics (decoded from !MapGen's sprite files)
 - `web/help_template.html`, `tools/build_help.py`, `tools/build_help_assets.py` the guide; its tile pictures are cropped from emulator screenshots of a showcase level (`tools/runmap.js` runs any raw map headlessly and dumps frames)
 - `tools/rosprite.py`  RISC OS sprite file decoder; `tools/bbcbasic.py` BBC BASIC detokeniser (used to read !MapGen's source)
-- `extracted/`     the Spark archive unpacked with nspark (the original disc contents)
+- `original/rhft.zip` the 1996 disc as a Spark archive (see original/README.md); `rhft.pack` is `!RHFT` from it, bundled, and is what the build uses
+- `extracted/`     (local only, git-ignored) the archive unpacked; two of its filenames contain `?`, which Windows cannot create
 
 ## Publishing on GitHub Pages
 
@@ -48,7 +49,6 @@ so the original game code loads them like any other level. Map format notes are 
     clang --target=wasm32 -O2 -nostdlib -fno-builtin -Wl,--no-entry -Wl,--export-all -Wl,--allow-undefined \
       -Wl,--initial-memory=50331648 -Wl,--max-memory=67108864 -Wl,-z,stack-size=262144 \
       -o rhft.wasm src/cpu.c src/os.c src/rhft.c src/wasm_shim.c
-    python3 tools/mkpack.py extracted rhft.pack listing.txt
     python3 tools/build_editor_assets.py && python3 tools/build_editor.py   # docs/editor.html
     python3 tools/build_help.py                                               # docs/help.html (needs web/help_assets.json + web/help_shots.json)
     python3 tools/build_docs.py                                               # docs/index.html

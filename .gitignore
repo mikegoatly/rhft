@@ -1,3 +1,7 @@
+# unpacked original disc (has ? in two filenames, which Windows cannot check out)
+extracted/
+rhft-extracted.zip
+
 # build output: GitHub Actions rebuilds docs/ from src/, web/ and tools/ on every push
 docs/
 web/rhft.html

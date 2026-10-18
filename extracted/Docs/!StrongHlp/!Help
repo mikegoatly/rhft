@@ -1,4 +1,0 @@
-set tmp 1
-rmensure stronghelp 2.00 set tmp 0
-if tmp = 1 then stronghelp StrongHelp !Root
-if tmp = 0 then /<obey$dir> StrongHelp !Root
