@@ -1,9 +1,9 @@
-# Rock Hard Fluffy Thing — browser port
+# Rock Hard Fluffy Thing - in the browser
 
 The original 1996 Risc PC game, unchanged, running under a small ARM (26-bit) emulator
 compiled to WebAssembly.
 
-[Play it here! ![Screenshot of the first level of RHFT](docs/rhft_screenshot.png)](https://mikegoatly.github.io/rhft/)
+[Play it here! ![Screenshot of the first level of RHFT](/img/rhft_screenshot.png)](https://mikegoatly.github.io/rhft/)
 
 
 
