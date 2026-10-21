@@ -3,6 +3,10 @@
 The original 1996 Risc PC game, unchanged, running under a small ARM (26-bit) emulator
 compiled to WebAssembly.
 
+[Play it here! ![Screenshot of the first level of RHFT](docs/rhft_screenshot.png)](https://mikegoatly.github.io/rhft/)
+
+
+
 ## Layout
 
 - `src/cpu.c`     ARM2/3-style 26-bit CPU interpreter (data processing, mul, swp, ldr/str, ldm/stm, b/bl, swi; USR/SVC/IRQ banking)
@@ -22,14 +26,6 @@ compiled to WebAssembly.
 - `web/help_template.html`, `tools/build_help.py`, `tools/build_help_assets.py` the guide; its tile pictures are cropped from emulator screenshots of a showcase level (`tools/runmap.js` runs any raw map headlessly and dumps frames)
 - `tools/rosprite.py`  RISC OS sprite file decoder; `tools/bbcbasic.py` BBC BASIC detokeniser (used to read !MapGen's source)
 - `original/rhft.zip` the 1996 disc as a Spark archive (see original/README.md); `rhft.pack` is `!RHFT` from it, bundled, and is what the build uses
-- `extracted/`     (local only, git-ignored) the archive unpacked; two of its filenames contain `?`, which Windows cannot create
-
-## Publishing on GitHub Pages
-
-`docs/` is build output and is not committed. `.github/workflows/pages.yml` runs `build.sh` on every push
-to `main` and deploys the result, so the live site always matches the sources in `src/`, `web/` and `tools/`.
-One-time setup in the repository settings: Pages -> Source: "GitHub Actions". To preview locally,
-run `sh build.sh` (needs clang with wasm32 support, wasm-ld and python3) and then `cd docs && python3 -m http.server`.
 
 ## Map packs
 
